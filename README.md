@@ -78,6 +78,12 @@ Start Celery worker:
 celery -A app.worker.celery_app worker --loglevel=info
 ```
 
+On Windows, use the solo pool for stability:
+
+```bash
+celery -A app.worker.celery_app worker --loglevel=info -P solo
+```
+
 ## Quick curl/Postman Test Flow
 
 1. Submit a task.
@@ -143,3 +149,18 @@ In Flower you can monitor:
 - Queue depth and throughput
 - Task success/failure rate
 - Task runtime and retry behavior
+
+## Optional Redis Integration Test
+
+Run this only when Redis is up and reachable:
+
+```bash
+RUN_REDIS_TESTS=1 python -m pytest -q tests/test_integration_redis.py
+```
+
+PowerShell equivalent:
+
+```powershell
+$env:RUN_REDIS_TESTS = "1"
+python -m pytest -q tests/test_integration_redis.py
+```

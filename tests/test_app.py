@@ -1,5 +1,6 @@
 import json
 
+import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
@@ -24,8 +25,6 @@ def override_get_db():
     finally:
         db.close()
 
-
-app.dependency_overrides[app_get_db] = override_get_db
 client = TestClient(app)
 
 
@@ -41,12 +40,14 @@ class DummyAsyncResult:
         return self.status == "FAILURE"
 
 
-def setup_function():
+
+@pytest.fixture(autouse=True)
+def setup_test_db():
+    app.dependency_overrides[app_get_db] = override_get_db
     Base.metadata.drop_all(bind=engine)
     Base.metadata.create_all(bind=engine)
-
-
-def teardown_module():
+    yield
+    app.dependency_overrides.clear()
     Base.metadata.drop_all(bind=engine)
 
 
