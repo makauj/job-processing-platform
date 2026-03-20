@@ -27,11 +27,23 @@
         <label for="task-type">Task Type</label>
         <input id="task-type" name="task_type" placeholder="email" required />
 
+        <div class="inline-row">
+          <label for="payload-template">Payload Template</label>
+          <select id="payload-template" aria-label="Payload template">
+            <option value="email">Email</option>
+            <option value="image">Image Processing</option>
+            <option value="report">Report Generation</option>
+            <option value="failure">Failure / Retry Test</option>
+          </select>
+          <button type="button" id="load-template" class="secondary">Load Template</button>
+        </div>
+
         <label for="payload">Payload (JSON)</label>
         <textarea id="payload" name="payload" rows="8" spellcheck="false">{
   "to": "dev@example.com",
   "subject": "Hello"
 }</textarea>
+        <p id="json-hint" class="hint" aria-live="polite">JSON looks valid.</p>
 
         <div class="actions">
           <button type="submit" id="submit-btn">Submit Task</button>
@@ -47,6 +59,15 @@
         <input id="task-id" placeholder="Paste task_id" />
         <button id="check-status">Check Once</button>
         <button id="toggle-poll" class="secondary">Start Polling</button>
+        <button id="copy-task-id" class="secondary">Copy Task ID</button>
+      </div>
+      <div class="status-controls compact">
+        <label for="poll-interval">Polling Interval</label>
+        <select id="poll-interval">
+          <option value="1000">1s</option>
+          <option value="2000" selected>2s</option>
+          <option value="5000">5s</option>
+        </select>
       </div>
 
       <div class="status-grid">
@@ -62,6 +83,11 @@
 
       <h3>Result / Error</h3>
       <pre id="result-box" class="result">No response yet.</pre>
+
+      <h3>Status History</h3>
+      <ul id="status-history" class="history">
+        <li>Waiting for first status update...</li>
+      </ul>
     </section>
   </main>
 
