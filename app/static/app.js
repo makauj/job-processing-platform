@@ -5,11 +5,15 @@ const payloadInput = document.getElementById("payload");
 const payloadTemplate = document.getElementById("payload-template");
 const loadTemplateBtn = document.getElementById("load-template");
 const jsonHint = document.getElementById("json-hint");
+const serviceMessage = document.getElementById("service-message");
+const stopServicesBtn = document.getElementById("stop-services");
 const taskIdInput = document.getElementById("task-id");
 const currentStatus = document.getElementById("current-status");
 const currentId = document.getElementById("current-id");
 const resultBox = document.getElementById("result-box");
 const statusHistory = document.getElementById("status-history");
+const recentTasks = document.getElementById("recent-tasks");
+const clearRecentBtn = document.getElementById("clear-recent");
 const checkStatusBtn = document.getElementById("check-status");
 const togglePollBtn = document.getElementById("toggle-poll");
 const copyTaskIdBtn = document.getElementById("copy-task-id");
@@ -18,6 +22,7 @@ const sampleFailureBtn = document.getElementById("sample-failure");
 
 let pollTimer = null;
 const terminalStates = ["SUCCESS", "FAILURE"];
+const recentStorageKey = "job-platform-recent-tasks";
 const templates = {
   email: { task_type: "email", payload: { to: "dev@example.com", subject: "Hello" } },
   image: { task_type: "image", payload: { image_url: "https://example.com/image.png", operation: "resize", width: 1024, height: 768 } },
@@ -28,6 +33,84 @@ const templates = {
 function setMessage(message, isError = false) {
   formMessage.textContent = message;
   formMessage.style.color = isError ? "#a8302a" : "#58695d";
+}
+
+function setServiceMessage(message, isError = false) {
+  serviceMessage.textContent = message;
+  serviceMessage.style.color = isError ? "#a8302a" : "#58695d";
+}
+
+function loadRecentTasks() {
+  try {
+    const saved = localStorage.getItem(recentStorageKey);
+    return saved ? JSON.parse(saved) : [];
+  } catch {
+    return [];
+  }
+}
+
+function persistRecentTasks(items) {
+  localStorage.setItem(recentStorageKey, JSON.stringify(items));
+}
+
+function addRecentTask(taskId, taskType) {
+  if (!taskId) {
+    return;
+  }
+
+  const existing = loadRecentTasks().filter((item) => item.task_id !== taskId);
+  const next = [{ task_id: taskId, task_type: taskType || "unknown", added_at: new Date().toISOString() }, ...existing].slice(0, 12);
+  persistRecentTasks(next);
+  renderRecentTasks();
+}
+
+function renderRecentTasks() {
+  const items = loadRecentTasks();
+  recentTasks.innerHTML = "";
+
+  if (!items.length) {
+    const li = document.createElement("li");
+    li.textContent = "No recent tasks yet.";
+    recentTasks.appendChild(li);
+    return;
+  }
+
+  items.forEach((item) => {
+    const li = document.createElement("li");
+    li.className = "recent-item";
+
+    const meta = document.createElement("div");
+    meta.className = "recent-meta";
+
+    const idLine = document.createElement("span");
+    idLine.className = "recent-id";
+    idLine.textContent = item.task_id;
+
+    const typeLine = document.createElement("span");
+    typeLine.className = "recent-type";
+    typeLine.textContent = `type: ${item.task_type}`;
+
+    meta.appendChild(idLine);
+    meta.appendChild(typeLine);
+
+    const openBtn = document.createElement("button");
+    openBtn.className = "secondary open-recent";
+    openBtn.type = "button";
+    openBtn.textContent = "Open";
+    openBtn.addEventListener("click", async () => {
+      taskIdInput.value = item.task_id;
+      setMessage(`Loaded task ${item.task_id}`);
+      try {
+        await fetchStatus(item.task_id);
+      } catch (error) {
+        setMessage(error.message || "Could not fetch status.", true);
+      }
+    });
+
+    li.appendChild(meta);
+    li.appendChild(openBtn);
+    recentTasks.appendChild(li);
+  });
 }
 
 function addHistory(status, details = "") {
@@ -133,6 +216,7 @@ form.addEventListener("submit", async (event) => {
     const data = await response.json();
     taskIdInput.value = data.task_id;
     setMessage(`Task submitted: ${data.task_id}`);
+    addRecentTask(data.task_id, taskTypeInput.value.trim());
     addHistory("PENDING", data.task_id);
     renderStatus({ task_id: data.task_id, status: data.status, result: null, error: null });
     if (!pollTimer) {
@@ -228,4 +312,26 @@ copyTaskIdBtn.addEventListener("click", async () => {
   }
 });
 
+clearRecentBtn.addEventListener("click", () => {
+  persistRecentTasks([]);
+  renderRecentTasks();
+  setMessage("Recent task list cleared.");
+});
+
+stopServicesBtn.addEventListener("click", async () => {
+  setServiceMessage("Sending stop signal...");
+  try {
+    const response = await fetch("/admin/services/stop", { method: "POST" });
+    const body = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      throw new Error(body.detail || `Stop failed (${response.status})`);
+    }
+    setServiceMessage(body.message || "Stop signal sent.");
+    setMessage("Services are stopping. API may become unavailable shortly.");
+  } catch (error) {
+    setServiceMessage(error.message || "Could not stop services.", true);
+  }
+});
+
 validatePayload();
+renderRecentTasks();

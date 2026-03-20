@@ -1,4 +1,6 @@
 import json
+import os
+import subprocess
 import uuid
 from pathlib import Path
 from typing import Any, cast
@@ -31,6 +33,38 @@ def healthcheck():
 @app.get("/ui", include_in_schema=False)
 def ui_page():
 	return FileResponse(BASE_DIR / "static" / "index.html")
+
+
+@app.post("/admin/services/stop", include_in_schema=False)
+def stop_services():
+	project_root = BASE_DIR.parent
+	stop_ps1 = project_root / "scripts" / "stop-services.ps1"
+	stop_sh = project_root / "scripts" / "stop-services.sh"
+
+	try:
+		if os.name == "nt":
+			if not stop_ps1.exists():
+				raise HTTPException(status_code=500, detail="Stop script not found for Windows")
+			subprocess.Popen(
+				[
+					"powershell",
+					"-ExecutionPolicy",
+					"Bypass",
+					"-File",
+					str(stop_ps1),
+				],
+				cwd=str(project_root),
+			)
+		else:
+			if not stop_sh.exists():
+				raise HTTPException(status_code=500, detail="Stop script not found for Unix")
+			subprocess.Popen(["bash", str(stop_sh)], cwd=str(project_root))
+	except HTTPException:
+		raise
+	except Exception as exc:
+		raise HTTPException(status_code=500, detail=f"Failed to initiate stop: {exc}")
+
+	return {"status": "stopping", "message": "Stop signal sent for API worker and Redis container."}
 
 
 @app.post("/tasks", response_model=TaskSubmissionResponse)
