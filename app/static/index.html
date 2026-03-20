@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Job Processing Console</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/static/styles.css" />
+</head>
+<body>
+  <main class="page">
+    <section class="hero">
+      <p class="eyebrow">Async Job Platform</p>
+      <h1>Run Tasks From Your Browser</h1>
+      <p class="subtitle">Submit a task to the FastAPI endpoint and track state transitions as Celery workers process it.</p>
+      <div class="badge-row">
+        <span class="badge">POST /tasks</span>
+        <span class="badge">GET /tasks/{task_id}</span>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Submit Task</h2>
+      <form id="task-form" class="form">
+        <label for="task-type">Task Type</label>
+        <input id="task-type" name="task_type" placeholder="email" required />
+
+        <label for="payload">Payload (JSON)</label>
+        <textarea id="payload" name="payload" rows="8" spellcheck="false">{
+  "to": "dev@example.com",
+  "subject": "Hello"
+}</textarea>
+
+        <div class="actions">
+          <button type="submit" id="submit-btn">Submit Task</button>
+          <button type="button" id="sample-failure" class="secondary">Load Failure Sample</button>
+        </div>
+      </form>
+      <p id="form-message" class="message" aria-live="polite"></p>
+    </section>
+
+    <section class="card">
+      <h2>Track Status</h2>
+      <div class="status-controls">
+        <input id="task-id" placeholder="Paste task_id" />
+        <button id="check-status">Check Once</button>
+        <button id="toggle-poll" class="secondary">Start Polling</button>
+      </div>
+
+      <div class="status-grid">
+        <article>
+          <h3>Current Status</h3>
+          <p id="current-status" class="state">-</p>
+        </article>
+        <article>
+          <h3>Task ID</h3>
+          <p id="current-id" class="mono">-</p>
+        </article>
+      </div>
+
+      <h3>Result / Error</h3>
+      <pre id="result-box" class="result">No response yet.</pre>
+    </section>
+  </main>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>
