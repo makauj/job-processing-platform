@@ -1,6 +1,6 @@
 # Job Processing Platform
 
-A backend system that accepts tasks (e.g., image processing, email sending, report generation), queues them, and processes them asynchronously. 
+A backend system that accepts tasks (e.g., image processing, email sending, report generation), queues them, and processes them asynchronously.
 It will use the FastAPI framework for the API layer, integrate Celery with Redis for queueing, and persist job metadata in PostgreSQL.
 This project will include retry logic, job status tracking, and rate limiting. This project demonstrates concurrency, distributed systems thinking, and production patterns.
 
