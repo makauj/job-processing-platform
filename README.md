@@ -52,6 +52,32 @@ CELERY_RESULT_BACKEND=db+postgresql://postgres:postgres@localhost:5432/celery_re
 
 ## Run the Platform
 
+One-command startup scripts (Redis + API + worker):
+
+PowerShell:
+
+```powershell
+./scripts/start-services.ps1
+```
+
+PowerShell with Flower:
+
+```powershell
+./scripts/start-services.ps1 -StartFlower
+```
+
+Bash:
+
+```bash
+bash ./scripts/start-services.sh
+```
+
+Bash with Flower:
+
+```bash
+START_FLOWER=1 bash ./scripts/start-services.sh
+```
+
 Install dependencies:
 
 ```bash
