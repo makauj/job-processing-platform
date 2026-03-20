@@ -45,10 +45,17 @@ def submit_task(payload: TaskSubmissionRequest, db: Session = Depends(get_db)):
 	db.add(job)
 	db.commit()
 
-	cast(Any, process_job).apply_async(
-		kwargs={"job_id": task_id, "task_type": payload.task_type, "payload": payload.payload},
-		task_id=task_id,
-	)
+	try:
+		cast(Any, process_job).apply_async(
+			kwargs={"job_id": task_id, "task_type": payload.task_type, "payload": payload.payload},
+			task_id=task_id,
+		)
+	except Exception as exc:
+		job.status = "FAILURE"
+		job.error = f"Failed to enqueue task: {exc}"
+		db.commit()
+		raise HTTPException(status_code=503, detail="Task broker unavailable. Try again later.")
+
 	return TaskSubmissionResponse(task_id=task_id, status="PENDING")
 
 
