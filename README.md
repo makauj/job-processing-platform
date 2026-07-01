@@ -41,15 +41,6 @@ This is where the business logic lives. To handle my specific requirements:
 - `job_processing` for API/job metadata
 - `celery_results` for Celery result backend
 
-### Example `.env`
-
-```env
-DATABASE_URL=postgresql+psycopg2://postgres:postgres@localhost:5432/job_processing
-REDIS_URL=redis://localhost:6379/0
-CELERY_BROKER_URL=redis://localhost:6379/0
-CELERY_RESULT_BACKEND=db+postgresql://postgres:postgres@localhost:5432/celery_results
-```
-
 ## Run the Platform
 
 One-command startup scripts (Redis + API + worker):
